@@ -1,0 +1,22 @@
+[project]
+name = "audio-enc"
+version = "0.1.0"
+description = "simple subtitle generator for mp4, mpeg"
+readme = "README.md"
+authors = [
+    { name = "rokari-19", email = "oshomahiyelobu1@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "customtkinter>=6.0.0",
+    "faster-whisper>=1.2.1",
+    "ffmpeg-python>=0.2.0",
+    "pysubs2>=1.9.0",
+]
+
+[project.scripts]
+audio-enc = "audio_enc:main"
+
+[build-system]
+requires = ["uv_build>=0.13.5,<0.14.0"]
+build-backend = "uv_build"
