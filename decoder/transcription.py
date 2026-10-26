@@ -1,13 +1,18 @@
-import ffmpeg
+import mlx_whisper
 
-(
-    ffmpeg
-    .input("input.mp4")
-    .output("audio.mp3", acodec="libopus", audio_bitrate="192k")
-    .run()
-)
+from tempfile import NamedTemporaryFile
 
 
-# def run():
-#     if __name__ == "__main__":
-#         pass
+class speechToTextGenerator():
+    def __init__(self, model:str):
+        self.model = model
+
+    def transcribe(self, file: str):
+        transcription = mlx_whisper.transcribe(
+            file, path_or_hf_repo=self.model, fp16=True, word_timestamps=True
+        )
+
+        return transcription
+
+# process = transcribe("audio", "mlx-community/whisper-base")
+# print(process)

@@ -1,2 +1,6 @@
 .venv
 .python-version
+*__pycache__
+**.mp3
+**.mov
+process.txt
