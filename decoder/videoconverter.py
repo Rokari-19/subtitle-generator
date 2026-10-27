@@ -4,7 +4,7 @@ import subprocess
 
 class Converter():
     def __init__(self, vid_file_path):
-        self.video_path = pathlib.Path(vid_file_path)
+        self.video_path = pathlib.Path(vid_file_path) #TODO: clean up file names before processing
         self.audio_path = self.video_path.with_suffix(".mp3")
     
     def convert_vid_to_aud(
@@ -18,8 +18,9 @@ class Converter():
             return
         
         command = f"ffmpeg -y -i {self.video_path} -vn -ar {ar} -ac {ac} -b:a {bitrate} {self.audio_path}"
+        
         try:
-            subprocess.run(command, capture_output=True,  shell=True)
+            subprocess.run(command,  shell=True, stderr=subprocess.STDOUT)
             print(f"successfully converted {self.video_path} to {self.audio_path}")
             result = {
                 "audio_file": self.audio_path,
@@ -29,3 +30,4 @@ class Converter():
             
         except subprocess.CalledProcessError as e:
             print(F"An error occured while converting {self.video_path} to mp3\nError msg: {e.output.decode()}")        
+            return e
