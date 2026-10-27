@@ -17,7 +17,7 @@ class App(CTk):
             
         )
         self.generator_label.pack(side=TOP, pady=60)
-        
+        #TODO: ui styling
         
         self.import_button = CTkButton(
             self,
@@ -45,7 +45,7 @@ class App(CTk):
         
     def import_file_callback(self):
         filetypes = (
-            ("media files", "*.mp4 *.mkv"),
+            ("media files", "*.mp4 *.mkv *.mov"),
         )
         self.filename = filedialog.askopenfilename(
             title="Select video File",
@@ -54,8 +54,7 @@ class App(CTk):
         )
         
         messagebox.showinfo(
-            title="selected file",
-            message=self.filename
+            message=f"selected file: {self.filename}"
         )
         
     def generate_subtitles(self):
@@ -64,10 +63,13 @@ class App(CTk):
         audio_file = str(result["audio_file"]) # type: ignore
         # print(type(audio_file))
         
-
+        # CHORE: convert file to actual srt subtitle file
+        # TODO: add ui for showing generated subtitle files.
+        # TODO: add graceful fallback to mlx-whisper, set faster-whisper as default implementation.
         file_path = audio_file
         generator = transcription.speechToTextGenerator(model="mlx-community/whisper-base-mlx")
+        # generator = transcription.FasterWhisperGenerator(model="base") # not currently working
         process = generator.transcribe(file=file_path)
         
-        with open("process.txt", "w", encoding="utf-8") as file:
+        with open("generatedsubtitles.txt", "w", encoding="utf-8") as file:
             file.write(str(process))
