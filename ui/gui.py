@@ -66,6 +66,7 @@ class App(CTk):
         # CHORE: convert file to actual srt subtitle file
         # TODO: add ui for showing generated subtitle files.
         # TODO: add graceful fallback to mlx-whisper, set faster-whisper as default implementation.
+        # TODO: complete project for post
         file_path = audio_file
         generator = transcription.speechToTextGenerator(model="mlx-community/whisper-base-mlx")
         # generator = transcription.FasterWhisperGenerator(model="base") # not currently working
