@@ -9,9 +9,8 @@ and creates a time-coded SubRip (`.srt`) subtitle file.
 - [FFmpeg](https://ffmpeg.org/) available on `PATH`
 - macOS, Windows, or Linux with a graphical desktop
 
-The app uses Faster-Whisper on CPU by default. On Apple silicon Macs, install the
-optional MLX-Whisper dependency to enable it as a fallback if Faster-Whisper
-cannot transcribe the file.
+Choose Faster-Whisper (CPU) or MLX-Whisper from the model selector in the app.
+MLX-Whisper requires Apple silicon and macOS.
 
 ## Install
 
@@ -21,7 +20,7 @@ Install [uv](https://docs.astral.sh/uv/) and clone this repository, then run:
 uv sync
 ```
 
-For the optional MLX fallback on Apple silicon:
+To install MLX-Whisper on Apple silicon:
 
 ```sh
 uv sync --extra mlx
@@ -38,7 +37,7 @@ uv run audio-enc
 
 You can also run `uv run python main.py` from the repository. In the app, import
 a video and choose **Generate subtitles**. The first transcription may take
-longer while the speech-recognition model is downloaded.
+longer while the selected speech-recognition model is downloaded.
 
 The app accepts common FFmpeg-supported video files, including MP4, MKV, MOV,
 AVI, WebM, and M4V. It saves the extracted audio and `.srt` file beside the
@@ -54,5 +53,3 @@ Run the test suite with:
 ```sh
 uv run python -m unittest discover -s tests
 ```
-
-Before redistributing the project, choose and add an appropriate license.

@@ -80,6 +80,21 @@ def transcribe_with_fallback(
             ) from mlx_error
 
 
+def transcribe_with_backend(
+    file: str | Path,
+    backend: str,
+    faster_model: str = "base",
+    mlx_model: str = "mlx-community/whisper-base-mlx",
+) -> tuple[dict[str, Any], str]:
+    if backend == "Faster-Whisper":
+        logger.info("Loading Faster-Whisper model %s on CPU.", faster_model)
+        return FasterWhisperGenerator(faster_model).transcribe(file), backend
+    if backend == "MLX-Whisper":
+        logger.info("Loading MLX-Whisper model %s.", mlx_model)
+        return MLXWhisperGenerator(mlx_model).transcribe(file), backend
+    raise ValueError(f"Unsupported transcription backend: {backend}")
+
+
 def write_srt(transcription: dict[str, Any], output_path: Path) -> Path:
     import pysubs2
 

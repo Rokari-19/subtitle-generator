@@ -3,10 +3,56 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from audio_enc.decoder.transcription import transcribe_with_fallback, write_srt
+from audio_enc.decoder.transcription import (
+    transcribe_with_backend,
+    transcribe_with_fallback,
+    write_srt,
+)
 
 
 class TranscriptionTests(unittest.TestCase):
+    def test_selected_faster_whisper_backend_is_used(self) -> None:
+        expected = {"segments": []}
+        with patch(
+            "audio_enc.decoder.transcription.FasterWhisperGenerator"
+        ) as faster, patch(
+            "audio_enc.decoder.transcription.MLXWhisperGenerator"
+        ) as mlx:
+            faster.return_value.transcribe.return_value = expected
+
+            result, backend = transcribe_with_backend("input.mp3", "Faster-Whisper")
+
+        self.assertIs(result, expected)
+        self.assertEqual(backend, "Faster-Whisper")
+        mlx.assert_not_called()
+
+    def test_selected_mlx_backend_is_used(self) -> None:
+        expected = {"segments": []}
+        with patch(
+            "audio_enc.decoder.transcription.FasterWhisperGenerator"
+        ) as faster, patch(
+            "audio_enc.decoder.transcription.MLXWhisperGenerator"
+        ) as mlx:
+            mlx.return_value.transcribe.return_value = expected
+
+            result, backend = transcribe_with_backend("input.mp3", "MLX-Whisper")
+
+        self.assertIs(result, expected)
+        self.assertEqual(backend, "MLX-Whisper")
+        faster.assert_not_called()
+
+    def test_rejects_unknown_backend_without_fallback(self) -> None:
+        with patch(
+            "audio_enc.decoder.transcription.FasterWhisperGenerator"
+        ) as faster, patch(
+            "audio_enc.decoder.transcription.MLXWhisperGenerator"
+        ) as mlx:
+            with self.assertRaisesRegex(ValueError, "Unsupported transcription backend"):
+                transcribe_with_backend("input.mp3", "unknown")
+
+        faster.assert_not_called()
+        mlx.assert_not_called()
+
     def test_prefers_faster_whisper(self) -> None:
         expected = {"segments": []}
         with patch(

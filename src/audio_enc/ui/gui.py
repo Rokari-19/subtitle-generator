@@ -7,7 +7,15 @@ import threading
 from dataclasses import dataclass
 from pathlib import Path
 
-from customtkinter import CTk, CTkButton, CTkFont, CTkFrame, CTkLabel, CTkTextbox
+from customtkinter import (
+    CTk,
+    CTkButton,
+    CTkFont,
+    CTkFrame,
+    CTkLabel,
+    CTkOptionMenu,
+    CTkTextbox,
+)
 from tkinter import filedialog
 
 
@@ -42,10 +50,10 @@ class App(CTk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.title("Subtitle Generator")
-        self.geometry("760x640")
-        self.minsize(600, 480)
+        self.geometry("760x700")
+        self.minsize(600, 540)
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(3, weight=1)
+        self.grid_rowconfigure(4, weight=1)
 
         self.filename: Path | None = None
         self.output_path: Path | None = None
@@ -104,16 +112,29 @@ class App(CTk):
         )
         self.generate_button.grid(row=0, column=1, padx=(6, 0), sticky="ew")
 
+        model_frame = CTkFrame(self, fg_color="transparent")
+        model_frame.grid(row=2, column=0, sticky="ew", padx=28, pady=(4, 8))
+        CTkLabel(model_frame, text="Transcription model:", anchor="w").pack(
+            side="left", padx=(0, 10)
+        )
+        self.model_selector = CTkOptionMenu(
+            model_frame,
+            values=["Faster-Whisper", "MLX-Whisper"],
+            command=self._model_selected,
+        )
+        self.model_selector.set("Faster-Whisper")
+        self.model_selector.pack(side="left")
+
         self.selected_label = CTkLabel(self, text="No video selected", anchor="w")
-        self.selected_label.grid(row=2, column=0, sticky="ew", padx=28, pady=(4, 8))
+        self.selected_label.grid(row=3, column=0, sticky="ew", padx=28, pady=(4, 8))
 
         self.preview = CTkTextbox(self, wrap="word", font=CTkFont(size=13))
-        self.preview.grid(row=3, column=0, sticky="nsew", padx=24, pady=8)
+        self.preview.grid(row=4, column=0, sticky="nsew", padx=24, pady=8)
         self.preview.insert("1.0", "Generated subtitles will appear here.")
         self.preview.configure(state="disabled")
 
         footer = CTkFrame(self)
-        footer.grid(row=4, column=0, sticky="ew", padx=24, pady=(8, 20))
+        footer.grid(row=5, column=0, sticky="ew", padx=24, pady=(8, 20))
         footer.grid_columnconfigure(0, weight=1)
 
         self.status_label = CTkLabel(
@@ -147,7 +168,13 @@ class App(CTk):
         self.open_output_button.grid(row=0, column=2)
         self.app_logger.info("Application ready.")
         self.app_logger.info("Log file: %s", self.log_path)
+        self.app_logger.info("Selected transcription model: Faster-Whisper")
         self.after(100, self._drain_worker_events)
+
+    def _model_selected(self, model: str) -> None:
+        self.app_logger.info("Selected transcription model: %s", model)
+        if self.filename is not None:
+            self.status_label.configure(text=f"Ready to use {model}.")
 
     def import_file_callback(self) -> None:
         filename = filedialog.askopenfilename(
@@ -170,6 +197,7 @@ class App(CTk):
         self.selected_label.configure(text=f"Selected: {self.filename.name}")
         self.status_label.configure(text="Ready to generate subtitles.")
         self.generate_button.configure(state="normal")
+        self.model_selector.configure(state="normal")
         self.open_output_button.configure(state="disabled")
 
     def generate_subtitles(self) -> None:
@@ -179,12 +207,17 @@ class App(CTk):
             return
 
         source_path = self.filename
-        self.app_logger.info("Starting subtitle generation for %s", source_path)
+        selected_model = self.model_selector.get()
+        self.app_logger.info(
+            "Starting subtitle generation for %s with %s.",
+            source_path,
+            selected_model,
+        )
         self._set_busy(True)
-        self.status_label.configure(text="Starting subtitle generation...")
+        self.status_label.configure(text=f"Starting with {selected_model}...")
         worker = threading.Thread(
             target=self._generate_worker,
-            args=(source_path,),
+            args=(source_path, selected_model),
             name="subtitle-generation",
             daemon=True,
         )
@@ -196,18 +229,20 @@ class App(CTk):
             self._set_busy(False)
             self.status_label.configure(text=f"Could not start: {error}")
 
-    def _generate_worker(self, source_path: Path) -> None:
+    def _generate_worker(self, source_path: Path, selected_model: str) -> None:
         try:
             from audio_enc.decoder.transcription import (
-                transcribe_with_fallback,
+                transcribe_with_backend,
                 write_srt,
             )
             from audio_enc.decoder.videoconverter import Converter
 
             converted = Converter(source_path).convert_vid_to_aud()
             self.app_logger.info("Audio extracted to %s", converted["audio_file"])
-            self.app_logger.info("Starting speech recognition.")
-            transcription, backend = transcribe_with_fallback(converted["audio_file"])
+            self.app_logger.info("Starting %s transcription.", selected_model)
+            transcription, backend = transcribe_with_backend(
+                converted["audio_file"], selected_model
+            )
             self.app_logger.info(
                 "Transcription finished with %s (%d segments).",
                 backend,
@@ -242,6 +277,7 @@ class App(CTk):
 
     def _set_busy(self, busy: bool) -> None:
         self.import_button.configure(state="disabled" if busy else "normal")
+        self.model_selector.configure(state="disabled" if busy else "normal")
         self.generate_button.configure(
             state="disabled" if busy or self.filename is None else "normal"
         )
