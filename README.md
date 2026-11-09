@@ -34,6 +34,11 @@ package manager if it is not already available.
 ```sh
 uv run audio-enc
 ```
+You can build an executable for your platorm with:
+
+```sh
+uv run pyinstaller --windowed main.py
+```
 
 You can also run `uv run python main.py` from the repository. In the app, import
 a video and choose **Generate subtitles**. The first transcription may take
