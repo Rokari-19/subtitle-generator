@@ -4,3 +4,7 @@
 **.mp3
 **.mov
 process.txt
+build/
+dist/
+**.spec
+**.DS_Store

@@ -12,6 +12,7 @@ dependencies = [
     "customtkinter>=6.0.0",
     "faster-whisper>=1.2.1",
     "mlx-whisper>=0.4.3",
+    "pyinstaller>=6.22.3",
     "pysubs2>=1.9.0",
 ]
 
