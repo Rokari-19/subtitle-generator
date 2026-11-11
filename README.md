@@ -6,6 +6,7 @@ and creates a time-coded SubRip (`.srt`) subtitle file.
 ## Requirements
 
 - Python 3.14 or newer
+- UV package manager
 - [FFmpeg](https://ffmpeg.org/) available on `PATH`
 - macOS, Windows, or Linux with a graphical desktop
 
@@ -39,6 +40,8 @@ You can build an executable for your platorm with:
 ```sh
 uv run pyinstaller --windowed main.py
 ```
+**Currently, building an executable for your os target has an issue with setting up the core AI service for a compiled app.**
+**It may or may not be updated in the future, as this is just a throwaway project.**
 
 You can also run `uv run python main.py` from the repository. In the app, import
 a video and choose **Generate subtitles**. The first transcription may take
